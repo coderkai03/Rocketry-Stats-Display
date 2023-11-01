@@ -18,7 +18,7 @@ pressure_displays=[]
 for i in range(3):
     label = tk.Label(
         press_temp_frame,
-        text=f"Pressure {i + 1}: Placeholder",
+        text=f"Pressure {i + 1}: 0 psi",
         borderwidth=1,
         relief='solid',
         padx=5,
@@ -27,13 +27,13 @@ for i in range(3):
     label.grid(row=i + 1, column=0)
     pressure_displays.append(label)
 
-    # create pressure labels
+# create temperature labels
 temperature_displays=[]
 
 for i in range(4):
     label = tk.Label(
         press_temp_frame,
-        text=f"Temperature {i + 1}: Placeholder",
+        text=f"Temperature {i + 1}: 0 °F",
         borderwidth=1,
         relief='solid',
         padx=5,
@@ -42,19 +42,37 @@ for i in range(4):
     label.grid(row=i, column=1)
     pressure_displays.append(label)
 
-# #create pressure Labels
-# pressure1_val = tk.Label(window, text='Pressure 1')
-# pressure1_val.grid(row=1, column=0)
-# pressure_displays.append(pressure1_val)
+# servo/ignition frame
+servo_ign_frame = tk.Frame(window, padx=50, pady=50)
+servo_ign_frame.grid(row=1, column=0)
 
-# pressure2_val = tk.Label(window, text='Pressure 2')
-# pressure2_val.grid(row=2, column=0)
-# pressure_displays.append(pressure1_val)
+#servo ign array
+servo_ign_displays=[]
 
-# pressure3_val = tk.Label(window, text='Pressure 3')
-# pressure3_val.grid(row=3, column=0)
-# pressure_displays.append(pressure1_val)
+#servos
+for i in range(2):
+    button = tk.Button(
+        servo_ign_frame,
+        text=f"Servo {i + 1}",
+        borderwidth=5,
+        relief='raised',
+        padx=5,
+        pady=5,
+    )
+    button.grid(row=1, column=i)
+    servo_ign_displays.append(button)
 
+#ignition
+ign = tk.Button(
+    servo_ign_frame,
+    text="Ignition",
+    borderwidth=5,
+    relief='raised',
+    padx=5,
+    pady=5,
+)
+ign.grid(row=1, column=2)
+servo_ign_displays.append(ign)
 
 
 root.mainloop()
