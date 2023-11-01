@@ -12,21 +12,33 @@ window.pack()
 press_temp_frame = tk.Frame(window)
 press_temp_frame.grid(row=0, column=0)
 
-# pressure displays array
+# create pressure labels
 pressure_displays=[]
 
-#create pressure Labels
-pressure1_val = tk.Label(window, text='Pressure 1')
-pressure1_val.grid(row=1, column=0)
-pressure_displays.append(pressure1_val)
+for i in range(3):
+    label = tk.Label(
+        window,
+        text=f"Pressure {i + 1}: Placeholder",
+        borderwidth=1,
+        relief='solid',
+        padx=5,
+        pady=5,
+    )
+    label.grid(row=i + 1, column=0)
+    pressure_displays.append(label)
 
-pressure2_val = tk.Label(window, text='Pressure 2')
-pressure2_val.grid(row=2, column=0)
-pressure_displays.append(pressure1_val)
+# #create pressure Labels
+# pressure1_val = tk.Label(window, text='Pressure 1')
+# pressure1_val.grid(row=1, column=0)
+# pressure_displays.append(pressure1_val)
 
-pressure3_val = tk.Label(window, text='Pressure 3')
-pressure3_val.grid(row=3, column=0)
-pressure_displays.append(pressure1_val)
+# pressure2_val = tk.Label(window, text='Pressure 2')
+# pressure2_val.grid(row=2, column=0)
+# pressure_displays.append(pressure1_val)
+
+# pressure3_val = tk.Label(window, text='Pressure 3')
+# pressure3_val.grid(row=3, column=0)
+# pressure_displays.append(pressure1_val)
 
 
 
