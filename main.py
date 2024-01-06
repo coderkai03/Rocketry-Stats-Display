@@ -1,78 +1,90 @@
 import tkinter as tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.animation import FuncAnimation
+import matplotlib.pyplot as plt
+import random
 
-#UI root
-root = tk.Tk()
-root.title('Rocket Data & Stats')
+def create_canvas(root, width, height):
+    canvas = tk.Canvas(root, width=width, height=height, bg='white')
+    canvas.pack()
+    return canvas
 
-#UI window
-window = tk.Frame(root)
-window.pack()
+def create_scatterplot(canvas, x, y, width, height):
+    fig, ax = plt.subplots(figsize=(4, 4), tight_layout=True)
 
-# Pressure/temp frames
-press_temp_frame = tk.Frame(window, padx=50, pady=50)
-press_temp_frame.grid(row=0, column=0)
+    # Initial data for demonstration
+    timestamps = [1]
+    temperatures = [random.uniform(65, 75)]
 
-# create pressure labels
-pressure_displays=[]
+    scatter_plot = ax.scatter(timestamps, temperatures, color='blue', marker='o', s=5)
+    ax.set_ylabel('Temp (F)')
 
-for i in range(3):
-    label = tk.Label(
-        press_temp_frame,
-        text=f"Pressure {i + 1}: 0 psi",
-        borderwidth=1,
-        relief='solid',
-        padx=5,
-        pady=5,
-    )
-    label.grid(row=i + 1, column=0)
-    pressure_displays.append(label)
+    # Set the title with decreased font size
+    ax.set_title('Temp Sensor (1)', fontsize=10)
 
-# create temperature labels
-temperature_displays=[]
+    # Remove horizontal values on the x-axis
+    ax.set_xticks([])
 
-for i in range(4):
-    label = tk.Label(
-        press_temp_frame,
-        text=f"Temperature {i + 1}: 0 °F",
-        borderwidth=1,
-        relief='solid',
-        padx=5,
-        pady=5,
-    )
-    label.grid(row=i, column=1)
-    pressure_displays.append(label)
+    # Set the background color to transparent
+    ax.set_facecolor('none')
 
-# servo/ignition frame
-servo_ign_frame = tk.Frame(window, padx=50, pady=50)
-servo_ign_frame.grid(row=1, column=0)
+    canvas_widget = FigureCanvasTkAgg(fig, master=canvas)
+    canvas_widget.draw()
+    canvas_widget.get_tk_widget().place(x=x, y=y, width=width, height=height)
 
-#servo ign array
-servo_ign_displays=[]
+    return canvas_widget, scatter_plot, timestamps, temperatures
 
-#servos
-for i in range(2):
-    button = tk.Button(
-        servo_ign_frame,
-        text=f"Servo {i + 1}",
-        borderwidth=5,
-        relief='raised',
-        padx=5,
-        pady=5,
-    )
-    button.grid(row=1, column=i)
-    servo_ign_displays.append(button)
+def create_rect(canvas, x1, y1, x2, y2, fill_color):
+    rectangle = canvas.create_rectangle(x1, y1, x2, y2, fill=fill_color)
+    return rectangle
 
-#ignition
-ign = tk.Button(
-    servo_ign_frame,
-    text="Ignition",
-    borderwidth=5,
-    relief='raised',
-    padx=5,
-    pady=5,
-)
-ign.grid(row=1, column=2)
-servo_ign_displays.append(ign)
+def create_display(canvas, x1, y1, x2, y2, arrow_color, text, text_anchor):
+    # Create horizontal arrow
+    arrow = canvas.create_line(x1 + 100, y1, x2 + 100, y2, arrow=tk.LAST, width=2)
 
+    return arrow
 
-root.mainloop()
+def update_graph(frame, canvas_widget, scatter_plot, timestamps, temperatures):
+    # Generate a new temperature data point
+    new_temperature = random.uniform(65, 75)
+
+    # Append the new temperature to the data
+    timestamps.append(timestamps[-1] + 1)
+    temperatures.append(new_temperature)
+
+    # Update the scatter plot with the new data
+    scatter_plot.set_offsets(list(zip(timestamps, temperatures)))
+
+    # Set x-axis limits based on the data
+    scatter_plot.axes.set_xlim(min(timestamps), max(timestamps) + 1)
+
+    # Print all temperature values in the console
+    print("Temperature values:", temperatures)
+
+def start_animation(canvas_widget, scatter_plot, timestamps, temperatures):
+    # Use FuncAnimation for smooth animation
+    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, scatter_plot, timestamps, temperatures), interval=100)
+    
+    # Return the animation object to prevent deletion
+    return ani
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("Temperature Sensor UI")
+
+    canvas = create_canvas(root, 500, 500)
+
+    # Create scatterplot with transparent background
+    canvas_widget, scatter_plot, timestamps, temperatures = create_scatterplot(canvas, x=20, y=50, width=200, height=100)
+
+    # Create vertical rectangle
+    rectangle = create_rect(canvas, 280, 20, 300, 130, fill_color="lightblue")
+
+    # Create display (arrow and caption)
+    arrow = create_display(canvas, 110, 75, 180, 75, "black", "Temp Sensor:", tk.E)
+
+    # Start updating the graph using FuncAnimation
+    ani = start_animation(canvas_widget, scatter_plot, timestamps, temperatures)
+
+    # Show the Tkinter window
+    root.mainloop()
