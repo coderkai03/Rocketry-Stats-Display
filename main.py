@@ -13,7 +13,7 @@ def create_scatterplot(canvas, x, y, width, height):
     fig, ax = plt.subplots(figsize=(4, 4), tight_layout=True)
 
     # Initial data for demonstration
-    initial_temperature = random.uniform(65, 75)
+    initial_temperature = None
 
     timestamps = list(range(1, 11))
     temperatures = [initial_temperature] * 10
@@ -26,6 +26,10 @@ def create_scatterplot(canvas, x, y, width, height):
 
     # Remove horizontal values on the x-axis
     ax.set_xticks([])
+
+    # Set the y-axis ticks to the range 70-75
+    ax.set_yticks([70, 81])
+    ax.set_ylim(60, 90)
 
     # Set the background color to transparent
     ax.set_facecolor('none')
