@@ -13,8 +13,10 @@ def create_scatterplot(canvas, x, y, width, height):
     fig, ax = plt.subplots(figsize=(4, 4), tight_layout=True)
 
     # Initial data for demonstration
-    timestamps = [1]
-    temperatures = [random.uniform(65, 75)]
+    initial_temperature = random.uniform(65, 75)
+
+    timestamps = list(range(1, 11))
+    temperatures = [initial_temperature] * 10
 
     scatter_plot = ax.scatter(timestamps, temperatures, color='blue', marker='o', s=5)
     ax.set_ylabel('Temp (F)')
@@ -33,6 +35,7 @@ def create_scatterplot(canvas, x, y, width, height):
     canvas_widget.get_tk_widget().place(x=x, y=y, width=width, height=height)
 
     return canvas_widget, scatter_plot, timestamps, temperatures
+
 
 def create_rect(canvas, x1, y1, x2, y2, fill_color):
     rectangle = canvas.create_rectangle(x1, y1, x2, y2, fill=fill_color)
@@ -56,14 +59,14 @@ def update_graph(frame, canvas_widget, scatter_plot, timestamps, temperatures):
     scatter_plot.set_offsets(list(zip(timestamps, temperatures)))
 
     # Set x-axis limits based on the data
-    scatter_plot.axes.set_xlim(min(timestamps), max(timestamps) + 1)
+    scatter_plot.axes.set_xlim(max(timestamps) - 10, max(timestamps) + 1)
 
     # Print all temperature values in the console
     print("Temperature values:", temperatures)
 
 def start_animation(canvas_widget, scatter_plot, timestamps, temperatures):
     # Use FuncAnimation for smooth animation
-    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, scatter_plot, timestamps, temperatures), interval=100)
+    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, scatter_plot, timestamps, temperatures), interval=1000)
     
     # Return the animation object to prevent deletion
     return ani
