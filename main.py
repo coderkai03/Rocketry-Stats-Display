@@ -9,19 +9,19 @@ def create_canvas(root, width, height):
     canvas.pack()
     return canvas
 
-def create_sensor_display(canvas, x, y, width, height):
+def create_sensor_display(canvas, x, y, width, height, title):
     # Create scatterplot with transparent background
-    canvas_widget, scatter_plot, timestamps, temperatures = create_scatterplot(canvas, x, y, width, height)
+    canvas_widget, scatter_plot, timestamps, temperatures = create_scatterplot(canvas, x, y, width, height, title)
 
     # Create display (arrow and caption)
-    arrow = create_display(canvas, x + 80, y + height / 2, x + 150, y + height / 2, "black", "Temp Sensor:", tk.E)
+    arrow = create_display(canvas, x + 80, y + height / 2, x + 150, y + height / 2, "black", title, tk.E)
 
     # Start updating the graph using FuncAnimation
     ani = start_animation(canvas_widget, scatter_plot, timestamps, temperatures)
 
     return canvas_widget, scatter_plot, timestamps, temperatures, ani
 
-def create_scatterplot(canvas, x, y, width, height):
+def create_scatterplot(canvas, x, y, width, height, title):
     fig, ax = plt.subplots(figsize=(4, 4), tight_layout=True)
 
     # Initial data for demonstration
@@ -36,7 +36,7 @@ def create_scatterplot(canvas, x, y, width, height):
     ax.set_ylim([60, 80])
 
     # Set the title with decreased font size
-    ax.set_title('Temp Sensor (1)', fontsize=10)
+    ax.set_title(title, fontsize=10)
 
     # Remove horizontal values on the x-axis
     ax.set_xticks([])
@@ -61,7 +61,7 @@ def create_rect(canvas, x, y, width, height, fill_color):
 
 def create_display(canvas, x1, y1, x2, y2, arrow_color, text, text_anchor):
     # Create horizontal arrow
-    arrow = canvas.create_line(x1 + 100, y1, x2 + 100, y2, arrow=tk.LAST, width=2)
+    arrow = canvas.create_line(x1 + 100, y1, x2 + 125, y2, arrow=tk.LAST, width=2)
 
     return arrow
 
@@ -97,11 +97,14 @@ if __name__ == "__main__":
 
     # Create temperature displays
     temp_sensors=[]
-    temp_sensor1 = create_sensor_display(canvas, x=20, y=450, width=200, height=100)
-    temp_sensor2 = create_sensor_display(canvas, x=20, y=550, width=200, height=100)
+    temp_sensor1 = create_sensor_display(canvas, x=20, y=200, width=200, height=100, title="Temp Sensor (1)")
+    temp_sensor3 = create_sensor_display(canvas, x=20, y=50, width=200, height=100, title="Temp Sensor (3)")
+    temp_sensor4 = create_sensor_display(canvas, x=20, y=450, width=200, height=100, title="Temp Sensor (4)")
+    temp_sensor5 = create_sensor_display(canvas, x=20, y=550, width=200, height=100, title="Temp Sensor (5)")
 
     # Create rectangles separately
-    rect1 = create_rect(canvas, 300, 550, 320, 650, fill_color="lightblue")
+    rect1 = create_rect(canvas, 300, 100, 320, 350, fill_color="lightblue")
+    rect2 = create_rect(canvas, 300, 450, 320, 650, fill_color="lightblue")
 
     # Show the Tkinter window
     root.mainloop()
