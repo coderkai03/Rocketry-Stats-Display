@@ -9,31 +9,38 @@ def create_canvas(root, width, height):
     canvas.pack()
     return canvas
 
-def create_sensor_display(canvas, x, y, width, height, title):
-    # Create scatterplot with transparent background
-    canvas_widget, scatter_plot, timestamps, temperatures = create_scatterplot(canvas, x, y, width, height, title)
+def create_sensor_display(canvas, x, y, width, height, title, graph_type):
+    # Create graph with transparent background
+    canvas_widget, line_plot, timestamps, data = create_graph(canvas, x, y, width, height, title, graph_type)
 
     # Create display (arrow and caption)
-    arrow = create_display(canvas, x + 80, y + height / 2, x + 150, y + height / 2, "black", title, tk.E)
+    arrow = create_arrow(canvas, x + 80, y + height / 2, x + 150, y + height / 2, "black", title, tk.E)
 
     # Start updating the graph using FuncAnimation
-    ani = start_animation(canvas_widget, scatter_plot, timestamps, temperatures)
+    ani = start_animation(canvas_widget, line_plot, timestamps, data, graph_type)
 
-    return canvas_widget, scatter_plot, timestamps, temperatures, ani
+    return canvas_widget, line_plot, timestamps, data, ani
 
-def create_scatterplot(canvas, x, y, width, height, title):
+def create_graph(canvas, x, y, width, height, title, graph_type):
     fig, ax = plt.subplots(figsize=(4, 4), tight_layout=True)
 
     # Initial data for demonstration
-    initial_temperature = None
+    initial_value = 0
 
     timestamps = [0]
-    temperatures = [0]
+    data = [initial_value]
 
-    scatter_plot = ax.scatter(timestamps, temperatures, color='blue', marker='o', s=5)
-    ax.set_ylabel('Temp (F)')
-    ax.set_yticks([60, 80])
-    ax.set_ylim([60, 80])
+    # Set the appropriate graph type
+    if graph_type == "temperature":
+        line_plot, = ax.plot(timestamps, data, color='blue', linewidth=2)
+        ax.set_ylabel('Temp (F)')
+        ax.set_yticks([60, 80])
+        ax.set_ylim([60, 80])
+    elif graph_type == "pressure":
+        line_plot, = ax.plot(timestamps, data, color='red', linewidth=2)
+        ax.set_ylabel('Pressure')
+        ax.set_yticks([0, 100])
+        ax.set_ylim([0, 100])
 
     # Set the title with decreased font size
     ax.set_title(title, fontsize=10)
@@ -42,10 +49,6 @@ def create_scatterplot(canvas, x, y, width, height, title):
     ax.set_xticks([])
     ax.set_xlim([-10, 1])
 
-    # Set the y-axis ticks to the range 70-75
-    ax.set_yticks([70, 81])
-    ax.set_ylim(60, 90)
-
     # Set the background color to transparent
     ax.set_facecolor('none')
 
@@ -53,54 +56,54 @@ def create_scatterplot(canvas, x, y, width, height, title):
     canvas_widget.draw()
     canvas_widget.get_tk_widget().place(x=x, y=y, width=width, height=height)
 
-    return canvas_widget, scatter_plot, timestamps, temperatures
+    return canvas_widget, line_plot, timestamps, data
 
 def create_rect(canvas, x, y, width, height, fill_color):
     rectangle = canvas.create_rectangle(x, y, width, height, fill=fill_color)
     return rectangle
 
-def create_display(canvas, x1, y1, x2, y2, arrow_color, text, text_anchor):
+def create_arrow(canvas, x1, y1, x2, y2, arrow_color, text, text_anchor):
     # Create horizontal arrow
     arrow = canvas.create_line(x1 + 100, y1, x2 + 125, y2, arrow=tk.LAST, width=2)
 
     return arrow
 
-def update_graph(frame, canvas_widget, scatter_plot, timestamps, temperatures):
-    # Generate a new temperature data point
-    new_temperature = random.uniform(65, 75)
+def update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type):
+    # Generate a new data point
+    new_data = random.uniform(0, 100) if graph_type == "pressure" else random.uniform(65, 75)
 
-    # Append the new temperature to the data
+    # Append the new data to the list
     timestamps.append(timestamps[-1] + 1)
-    temperatures.append(new_temperature)
+    data.append(new_data)
 
-    # Update the scatter plot with the new data
-    scatter_plot.set_offsets(list(zip(timestamps, temperatures)))
+    # Update the line plot with the new data
+    line_plot.set_data(timestamps, data)
 
     # Set x-axis limits based on the data
-    scatter_plot.axes.set_xlim(max(timestamps) - 10, max(timestamps))
+    line_plot.axes.set_xlim(max(timestamps) - 10, max(timestamps))
 
-    # Print all temperature values in the console
-    print("Temperature values:", temperatures)
+    # Print all data values in the console
+    print(f"{graph_type.capitalize()} values:", data)
 
-def start_animation(canvas_widget, scatter_plot, timestamps, temperatures):
+def start_animation(canvas_widget, line_plot, timestamps, data, graph_type):
     # Use FuncAnimation for smooth animation
-    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, scatter_plot, timestamps, temperatures), interval=100)
+    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type), interval=100)
     
     # Return the animation object to prevent deletion
     return ani
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("Temperature Sensor UI")
+    root.title("Sensor UI")
 
     canvas = create_canvas(root, 1280, 720)
 
     # Create temperature displays
-    temp_sensors=[]
-    temp_sensor1 = create_sensor_display(canvas, x=20, y=200, width=200, height=100, title="Temp Sensor (1)")
-    temp_sensor3 = create_sensor_display(canvas, x=20, y=50, width=200, height=100, title="Temp Sensor (3)")
-    temp_sensor4 = create_sensor_display(canvas, x=20, y=450, width=200, height=100, title="Temp Sensor (4)")
-    temp_sensor5 = create_sensor_display(canvas, x=20, y=550, width=200, height=100, title="Temp Sensor (5)")
+    temp_sensors = []
+    temp_sensor1 = create_sensor_display(canvas, x=20, y=200, width=200, height=100, title="Temp Sensor (1)", graph_type="temperature")
+    temp_sensor3 = create_sensor_display(canvas, x=20, y=50, width=200, height=100, title="Temp Sensor (3)", graph_type="temperature")
+    temp_sensor4 = create_sensor_display(canvas, x=20, y=450, width=200, height=100, title="Temp Sensor (4)", graph_type="temperature")
+    temp_sensor5 = create_sensor_display(canvas, x=20, y=550, width=200, height=100, title="Temp Sensor (5)", graph_type="temperature")
 
     # Create rectangles separately
     rect1 = create_rect(canvas, 300, 100, 320, 350, fill_color="lightblue")
