@@ -16,25 +16,27 @@ directions = {
     'down_right': [100, 50, 100, 100]
 }
 
-
 graph_properties = {
     'temperature': {
         'color': 'blue',
         'ylabel': 'Temp (F)',
         'yticks': [60, 80],
-        'ylim': [60, 80]
+        'ylim': [60, 80],
+        'units': '°F'
     },
     'pressure': {
         'color': 'red',
         'ylabel': 'Press (psi)',
         'yticks': [50, 150],
-        'ylim': [50, 150]
+        'ylim': [50, 150],
+        'units': 'psi'
     },
     'load_sensor': {
         'color': 'green',
         'ylabel': 'Load (lb)',
         'yticks': [0, 100],
-        'ylim': [0, 100]
+        'ylim': [0, 100],
+        'units': 'lb'
     }
 }
 
@@ -114,8 +116,6 @@ def create_graph(canvas, x, y, width, height, title, graph_type):
 
     return canvas_widget, line_plot, timestamps, data
 
-# Rest of the code remains unchanged
-
 
 def create_rect(canvas, x, y, width, height, fill_color):
     rectangle = canvas.create_rectangle(x, y, width, height, fill=fill_color)
@@ -156,17 +156,36 @@ def update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type):
             circle, label = servo_states[servo_id]['objects']
             servo_states[servo_id]['state'] = update_servo_state(canvas_widget, circle, label)
     else:
-        # For other types, generate a new data point within the y limits
-        new_data = random.uniform(properties.get('ylim', [0, 100])[0], properties.get('ylim', [0, 100])[1])
+        # For other types, generate a new data point without checking the y-limits
+        new_data = random.uniform(0, 100)
         # Append the new data to the list
         timestamps.append(timestamps[-1] + 1)
-        data.append(new_data)
+        data.append(data[-1] + 1)
+        
         # Update the line plot with the new data
         line_plot.set_data(timestamps, data)
+
+        # Adjust y-limits if the new data point is outside the current limits
+        if data[-1] < properties['ylim'][0]:
+            properties['ylim'][0] = data[-1]  # Adjust the lower limit
+            properties['ylim'][1] = data[-1] + 10
+        elif data[-1] > properties['ylim'][1]:
+            properties['ylim'][0] = data[-1] - 10  # Adjust the upper limit
+            properties['ylim'][1] = data[-1]
+
+        # Set y-axis limits based on the updated limits
+        line_plot.axes.set_ylim(properties['ylim'])
+        line_plot.axes.set_yticks(properties['ylim'])
+        
         # Set x-axis limits based on the data
         line_plot.axes.set_xlim(max(timestamps) - 10, max(timestamps))
+
+        # Update xlabel with the latest value
+        line_plot.axes.set_xlabel(f"{data[-1]:.2f} {properties['units']}")
+
         # Print all data values in the console
         print(f"{graph_type.capitalize()} values:", data)
+
 
 
 def start_animation(canvas_widget, line_plot, timestamps, data, graph_type):
@@ -175,6 +194,7 @@ def start_animation(canvas_widget, line_plot, timestamps, data, graph_type):
     
     # Return the animation object to prevent deletion
     return ani
+
 
 if __name__ == "__main__":
     root = tk.Tk()
