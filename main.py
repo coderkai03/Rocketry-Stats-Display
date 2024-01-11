@@ -43,17 +43,44 @@ def create_canvas(root, width, height):
     canvas.pack()
     return canvas
 
-def create_sensor_display(canvas, x, y, width, height, title, graph_type, direction):
-    # Create graph with transparent background
-    canvas_widget, line_plot, timestamps, data = create_graph(canvas, x, y, width, height, title, graph_type)
+def create_servo(canvas, x, y, diameter, title, initial_state=True):
+    # Create red/green circle
+    color = 'green' if initial_state else 'red'
+    circle = canvas.create_oval(x, y, x + diameter/4, y + diameter/4, outline='black', width=2, fill=color)
 
-    # Create display (arrow and caption)
-    arrow = create_arrow(canvas, x + 80, y + height / 2, x + 150, y + height / 2, direction)
+    # Create label under the circle
+    label = canvas.create_text(x + diameter / 8, y + diameter / 4 + 10, text=title, anchor=tk.CENTER, font=('Arial', 10, 'bold'))
 
-    # Start updating the graph using FuncAnimation
-    ani = start_animation(canvas_widget, line_plot, timestamps, data, graph_type)
+    return circle, label
 
-    return canvas_widget, line_plot, timestamps, data, ani
+def create_sensor_display(canvas, x, y, width, height, title, graph_type, direction=None):
+    canvas_widget = None
+    line_plot = None
+    timestamps = []
+    data = []
+    ani = None
+    circle = None
+    label = None
+    arrow = None
+
+    if graph_type == "servo":
+        # Create servo display with red/green circle
+        initial_state = random.choice([True, False])
+        circle, label = create_servo(canvas, x, y, height, title, initial_state)
+        # Create arrow for servo if direction is provided
+        if direction:
+            arrow = create_arrow(canvas, x + height / 2, y + height, x + height / 2, y + height + 20, direction)
+    else:
+        # Create graph with transparent background
+        canvas_widget, line_plot, timestamps, data = create_graph(canvas, x, y, width, height, title, graph_type)
+        # Create display (arrow and caption) if direction is provided
+        if direction:
+            arrow = create_arrow(canvas, x + 80, y + height / 2, x + 150, y + height / 2, direction)
+        # Start updating the graph using FuncAnimation
+        ani = start_animation(canvas_widget, line_plot, timestamps, data, graph_type)
+
+    return canvas_widget, line_plot, timestamps, data, ani, circle, label, arrow
+
 
 def create_graph(canvas, x, y, width, height, title, graph_type):
     fig, ax = plt.subplots(figsize=(4, 4), tight_layout=True)
@@ -107,26 +134,44 @@ def create_arrow(canvas, x1, y1, x2, y2, direction):
 
     return arrow
 
+def update_servo_state(canvas, circle, label):
+    # Toggle the servo state (change color and label)
+    current_color = canvas.itemcget(circle, 'fill')
+    new_state = current_color == 'red'
+    color = 'green' if new_state else 'red'
+    canvas.itemconfig(circle, fill=color)
+    canvas.itemconfig(label, text="ON" if new_state else "OFF")
+    return new_state
+
+
+servo_states = {"servo1": True, "servo2": True}
+
 def update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type):
-    # Generate a new data point
-    new_data = random.uniform(0, 100) if graph_type == "pressure" else random.uniform(65, 75)
+    properties = graph_properties.get(graph_type, {})
+    
+    if graph_type == "servo":
+        # Update the state of each servo alternately
+        for servo_id in servo_states:
+            # Retrieve the corresponding circle and label for the servo
+            circle, label = servo_states[servo_id]['objects']
+            servo_states[servo_id]['state'] = update_servo_state(canvas_widget, circle, label)
+    else:
+        # For other types, generate a new data point within the y limits
+        new_data = random.uniform(properties.get('ylim', [0, 100])[0], properties.get('ylim', [0, 100])[1])
+        # Append the new data to the list
+        timestamps.append(timestamps[-1] + 1)
+        data.append(new_data)
+        # Update the line plot with the new data
+        line_plot.set_data(timestamps, data)
+        # Set x-axis limits based on the data
+        line_plot.axes.set_xlim(max(timestamps) - 10, max(timestamps))
+        # Print all data values in the console
+        print(f"{graph_type.capitalize()} values:", data)
 
-    # Append the new data to the list
-    timestamps.append(timestamps[-1] + 1)
-    data.append(new_data)
-
-    # Update the line plot with the new data
-    line_plot.set_data(timestamps, data)
-
-    # Set x-axis limits based on the data
-    line_plot.axes.set_xlim(max(timestamps) - 10, max(timestamps))
-
-    # Print all data values in the console
-    print(f"{graph_type.capitalize()} values:", data)
 
 def start_animation(canvas_widget, line_plot, timestamps, data, graph_type):
     # Use FuncAnimation for smooth animation
-    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type), interval=1000)
+    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type), interval=100)
     
     # Return the animation object to prevent deletion
     return ani
@@ -138,13 +183,13 @@ if __name__ == "__main__":
     canvas = create_canvas(root, 1280, 900)
 
     # Create temperature displays
-    temp_sensor1 = create_sensor_display(canvas, x=450, y=200, width=200, height=100, title="Temp Sensor (1)", graph_type="temperature", direction='left')
+    temp_sensor1 = create_sensor_display(canvas, x=425, y=200, width=200, height=100, title="Temp Sensor (1)", graph_type="temperature", direction='left')
     temp_sensor3 = create_sensor_display(canvas, x=20, y=50, width=200, height=100, title="Temp Sensor (3)", graph_type="temperature", direction='right')
     temp_sensor4 = create_sensor_display(canvas, x=20, y=550, width=200, height=100, title="Temp Sensor (4)", graph_type="temperature", direction='right')
     temp_sensor5 = create_sensor_display(canvas, x=20, y=650, width=200, height=100, title="Temp Sensor (5)", graph_type="temperature", direction='right')
 
     # Create pressure displays
-    press_sensor2 = create_sensor_display(canvas, x=450, y=50, width=200, height=100, title="Press Sensor (2)", graph_type="pressure", direction='left')
+    press_sensor2 = create_sensor_display(canvas, x=425, y=50, width=200, height=100, title="Press Sensor (2)", graph_type="pressure", direction='left')
     press_sensor3 = create_sensor_display(canvas, x=50, y=385, width=200, height=100, title="Press Sensor (3)", graph_type="pressure", direction='down_right')
     press_sensor1 = create_sensor_display(canvas, x=760, y=295, width=200, height=100, title="Press Sensor (1)", graph_type="pressure", direction='down_left')
 
@@ -152,8 +197,8 @@ if __name__ == "__main__":
     load_sensor1 = create_sensor_display(canvas, x=375, y=600, width=200, height=100, title="Load Sensor (1&2)", graph_type="load_sensor", direction='up_left')
 
     # create servo sensors
-    servo2 = create_sensor_display(canvas, x=365, y=325, width=200, height=100, title="Servo (2)", graph_type="pressure", direction='down_left')
-    servo1 = create_sensor_display(canvas, x=750, y=575, width=200, height=100, title="Servo (1)", graph_type="pressure", direction='up_left')
+    servo2 = create_sensor_display(canvas, x=295, y=470, width=200, height=100, title="Servo (2)", graph_type="servo")
+    servo1 = create_sensor_display(canvas, x=695, y=525, width=200, height=100, title="Servo (1)", graph_type="servo")
 
     # rocket bodies
     upper = create_rect(canvas, 300, 100, 320, 450, fill_color="lightblue")
@@ -162,10 +207,16 @@ if __name__ == "__main__":
     
     load = create_rect(canvas, 315, 530, 320, 550, fill_color="gray")
     press_trans3 = create_rect(canvas, 300, 530, 305, 550, fill_color="gray")
-    servo = create_rect(canvas, 308, 490, 312, 510, fill_color="gray")
+    # servo = create_rect(canvas, 300, 490, 312, 510, fill_color="gray")
 
     servo_middle = create_rect(canvas, 700, 500, 710, 520, fill_color="gray")
     press_trans1 = create_rect(canvas, 710, 470, 720, 490, fill_color="gray")
+    fill_tank = create_rect(canvas, 1000, 450, 1020, 750, fill_color="lightblue")
+
+    #labels
+    canvas.create_text(310, 770, text="ENGINE", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
+    canvas.create_text(700, 770, text="FILL STATION", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
+    canvas.create_text(1010, 770, text="FILL TANK", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
 
     # Show the Tkinter window
     root.mainloop()
