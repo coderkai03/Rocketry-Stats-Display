@@ -4,17 +4,25 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 import random
 
+# Global vars
+directions = {
+        'left': [-100, 0, -125, 0],
+        'right': [100, 0, 125, 0],
+        'up': [0, 100, 0, 125],
+        'down': [0, -100, 0, -125]
+    }
+
 def create_canvas(root, width, height):
     canvas = tk.Canvas(root, width=width, height=height, bg='white')
     canvas.pack()
     return canvas
 
-def create_sensor_display(canvas, x, y, width, height, title, graph_type):
+def create_sensor_display(canvas, x, y, width, height, title, graph_type, direction):
     # Create graph with transparent background
     canvas_widget, line_plot, timestamps, data = create_graph(canvas, x, y, width, height, title, graph_type)
 
     # Create display (arrow and caption)
-    arrow = create_arrow(canvas, x + 80, y + height / 2, x + 150, y + height / 2, "black", title, tk.E)
+    arrow = create_arrow(canvas, x + 80, y + height / 2, x + 150, y + height / 2, "black", title, tk.E, direction)
 
     # Start updating the graph using FuncAnimation
     ani = start_animation(canvas_widget, line_plot, timestamps, data, graph_type)
@@ -62,9 +70,16 @@ def create_rect(canvas, x, y, width, height, fill_color):
     rectangle = canvas.create_rectangle(x, y, width, height, fill=fill_color)
     return rectangle
 
-def create_arrow(canvas, x1, y1, x2, y2, arrow_color, text, text_anchor):
+def create_arrow(canvas, x1, y1, x2, y2, arrow_color, text, text_anchor, direction):
     # Create horizontal arrow
-    arrow = canvas.create_line(x1 + 100, y1, x2 + 125, y2, arrow=tk.LAST, width=2)
+    arrow = canvas.create_line(
+        x1 + directions[direction][0],
+        y1 + directions[direction][1],
+        x2 + directions[direction][2],
+        y2 + directions[direction][3],
+        arrow=tk.LAST,
+        width=2
+    )
 
     return arrow
 
@@ -100,10 +115,10 @@ if __name__ == "__main__":
 
     # Create temperature displays
     temp_sensors = []
-    temp_sensor1 = create_sensor_display(canvas, x=20, y=200, width=200, height=100, title="Temp Sensor (1)", graph_type="temperature")
-    temp_sensor3 = create_sensor_display(canvas, x=20, y=50, width=200, height=100, title="Temp Sensor (3)", graph_type="temperature")
-    temp_sensor4 = create_sensor_display(canvas, x=20, y=450, width=200, height=100, title="Temp Sensor (4)", graph_type="temperature")
-    temp_sensor5 = create_sensor_display(canvas, x=20, y=550, width=200, height=100, title="Temp Sensor (5)", graph_type="temperature")
+    temp_sensor1 = create_sensor_display(canvas, x=20, y=200, width=200, height=100, title="Temp Sensor (1)", graph_type="temperature", direction='right')
+    temp_sensor3 = create_sensor_display(canvas, x=20, y=50, width=200, height=100, title="Temp Sensor (3)", graph_type="temperature", direction='left')
+    temp_sensor4 = create_sensor_display(canvas, x=200, y=450, width=200, height=100, title="Temp Sensor (4)", graph_type="temperature", direction='up')
+    temp_sensor5 = create_sensor_display(canvas, x=500, y=550, width=200, height=100, title="Temp Sensor (5)", graph_type="temperature", direction='down')
 
     # Create rectangles separately
     rect1 = create_rect(canvas, 300, 100, 320, 350, fill_color="lightblue")
