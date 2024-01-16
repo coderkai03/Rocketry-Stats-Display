@@ -4,18 +4,6 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 import random
 
-# Global vars
-directions = {
-    'left': [-100, 0, -250, 0],
-    'right': [100, 0, 125, 0],
-    'down': [35, 50, -35, 125],
-    'up': [35, -50, -35, -125],
-    'up_left': [-50, -50, -200, -100],
-    'up_right': [100, -50, 150, -150],
-    'down_left': [-50, 50, -200, 125],
-    'down_right': [100, 50, 100, 100]
-}
-
 graph_properties = {
     'temperature': {
         'color': 'blue',
@@ -42,8 +30,9 @@ graph_properties = {
 
 def create_canvas(root, width, height):
     canvas = tk.Canvas(root, width=width, height=height, bg='white')
-    canvas.pack()
+    canvas.grid(row=0, column=0)
     return canvas
+
 
 def create_servo(canvas, x, y, diameter, title, initial_state=True):
     # Create red/green circle
@@ -55,7 +44,7 @@ def create_servo(canvas, x, y, diameter, title, initial_state=True):
 
     return circle, label
 
-def create_sensor_display(canvas, x, y, width, height, title, graph_type, direction=None):
+def create_sensor_display(canvas, x, y, width, height, title, graph_type):
     canvas_widget = None
     line_plot = None
     timestamps = []
@@ -63,25 +52,18 @@ def create_sensor_display(canvas, x, y, width, height, title, graph_type, direct
     ani = None
     circle = None
     label = None
-    arrow = None
 
     if graph_type == "servo":
         # Create servo display with red/green circle
         initial_state = random.choice([True, False])
         circle, label = create_servo(canvas, x, y, height, title, initial_state)
-        # Create arrow for servo if direction is provided
-        if direction:
-            arrow = create_arrow(canvas, x + height / 2, y + height, x + height / 2, y + height + 20, direction)
     else:
         # Create graph with transparent background
         canvas_widget, line_plot, timestamps, data = create_graph(canvas, x, y, width, height, title, graph_type)
-        # Create display (arrow and caption) if direction is provided
-        if direction:
-            arrow = create_arrow(canvas, x + 80, y + height / 2, x + 150, y + height / 2, direction)
         # Start updating the graph using FuncAnimation
         ani = start_animation(canvas_widget, line_plot, timestamps, data, graph_type)
 
-    return canvas_widget, line_plot, timestamps, data, ani, circle, label, arrow
+    return canvas_widget, line_plot, timestamps, data, ani, circle, label
 
 
 def create_graph(canvas, x, y, width, height, title, graph_type):
@@ -120,19 +102,6 @@ def create_graph(canvas, x, y, width, height, title, graph_type):
 def create_rect(canvas, x, y, width, height, fill_color):
     rectangle = canvas.create_rectangle(x, y, width, height, fill=fill_color)
     return rectangle
-
-def create_arrow(canvas, x1, y1, x2, y2, direction):
-    # Create horizontal arrow
-    arrow = canvas.create_line(
-        x1 + directions[direction][0],
-        y1 + directions[direction][1],
-        x2 + directions[direction][2],
-        y2 + directions[direction][3],
-        arrow=tk.LAST,
-        width=2
-    )
-
-    return arrow
 
 def update_servo_state(canvas, circle, label):
     # Toggle the servo state (change color and label)
@@ -187,10 +156,9 @@ def update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type):
         print(f"{graph_type.capitalize()} values:", data)
 
 
-
 def start_animation(canvas_widget, line_plot, timestamps, data, graph_type):
     # Use FuncAnimation for smooth animation
-    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type), interval=100)
+    ani = FuncAnimation(plt.gcf(), lambda frame: update_graph(frame, canvas_widget, line_plot, timestamps, data, graph_type), interval=1000)
     
     # Return the animation object to prevent deletion
     return ani
@@ -200,54 +168,64 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Sensor UI")
 
-    canvas = create_canvas(root, 1280, 900)
+    # Create canvas for the diagram
+    diagram_canvas = create_canvas(root, 800, 900)
+    diagram_canvas.grid(row=0, column=0, padx=10, pady=10)
+
+    # Create canvas for graphs/sensors
+    graph_canvas = create_canvas(root, 480, 900)
+    graph_canvas.grid(row=0, column=1, padx=10, pady=10)
 
     # Create temperature displays
-    temp_sensor1 = create_sensor_display(canvas, x=425, y=200, width=200, height=100, title="Temp Sensor (1)", graph_type="temperature", direction='left')
-    temp_sensor3 = create_sensor_display(canvas, x=20, y=50, width=200, height=100, title="Temp Sensor (3)", graph_type="temperature", direction='right')
-    temp_sensor4 = create_sensor_display(canvas, x=20, y=550, width=200, height=100, title="Temp Sensor (4)", graph_type="temperature", direction='right')
-    temp_sensor5 = create_sensor_display(canvas, x=20, y=650, width=200, height=100, title="Temp Sensor (5)", graph_type="temperature", direction='right')
+    temp_sensor1 = create_sensor_display(graph_canvas, x=20, y=50, width=200, height=100, title="TS1", graph_type="temperature")
+    temp_sensor3 = create_sensor_display(graph_canvas, x=20, y=200, width=200, height=100, title="TS3", graph_type="temperature")
+    temp_sensor4 = create_sensor_display(graph_canvas, x=20, y=350, width=200, height=100, title="TS4", graph_type="temperature")
+    temp_sensor5 = create_sensor_display(graph_canvas, x=20, y=500, width=200, height=100, title="TS5", graph_type="temperature")
 
     # Create pressure displays
-    press_sensor2 = create_sensor_display(canvas, x=425, y=50, width=200, height=100, title="Press Sensor (2)", graph_type="pressure", direction='left')
-    press_sensor3 = create_sensor_display(canvas, x=50, y=385, width=200, height=100, title="Press Sensor (3)", graph_type="pressure", direction='down_right')
-    press_sensor1 = create_sensor_display(canvas, x=760, y=295, width=200, height=100, title="Press Sensor (1)", graph_type="pressure", direction='down_left')
+    press_sensor2 = create_sensor_display(graph_canvas, x=250, y=50, width=200, height=100, title="PS2", graph_type="pressure")
+    press_sensor3 = create_sensor_display(graph_canvas, x=250, y=200, width=200, height=100, title="PS3", graph_type="pressure")
+    press_sensor1 = create_sensor_display(graph_canvas, x=250, y=350, width=200, height=100, title="PS1", graph_type="pressure")
 
     # Create load sensors
-    load_sensor1 = create_sensor_display(canvas, x=375, y=600, width=200, height=100, title="Load Sensor (1&2)", graph_type="load_sensor", direction='up_left')
+    load_sensor1 = create_sensor_display(graph_canvas, x=250, y=500, width=200, height=100, title="LS1&2", graph_type="load_sensor")
 
-    # create servo sensors
-    servo2 = create_sensor_display(canvas, x=295, y=470, width=200, height=100, title="Servo (2)", graph_type="servo")
-    servo1 = create_sensor_display(canvas, x=695, y=525, width=200, height=100, title="Servo (1)", graph_type="servo")
+    # Create servo sensors
+    servo2 = create_sensor_display(graph_canvas, x=250, y=650, width=200, height=100, title="Servo2", graph_type="servo")
+    servo1 = create_sensor_display(graph_canvas, x=250, y=800, width=200, height=100, title="Servo1", graph_type="servo")
 
-    # rocket bodies
-    upper = create_rect(canvas, 300, 100, 320, 450, fill_color="lightblue")
-    lower = create_rect(canvas, 300, 550, 320, 750, fill_color="lightblue")
-    middle = create_rect(canvas, 350, 500, 1000, 490, fill_color="gray")
-    
-    load = create_rect(canvas, 315, 530, 320, 550, fill_color="gray")
-    press_trans3 = create_rect(canvas, 300, 530, 305, 550, fill_color="gray")
-    # servo = create_rect(canvas, 300, 490, 312, 510, fill_color="gray")
+    # Rocket bodies
+    upper = create_rect(diagram_canvas, 50, 100, 70, 450, fill_color="lightblue")
+    lower = create_rect(diagram_canvas, 50, 550, 70, 750, fill_color="lightblue")
+    middle = create_rect(diagram_canvas, 100, 500, 500, 490, fill_color="gray")
 
-    servo_middle = create_rect(canvas, 700, 500, 710, 520, fill_color="gray")
-    press_trans1 = create_rect(canvas, 710, 470, 720, 490, fill_color="gray")
-    fill_tank = create_rect(canvas, 1000, 450, 1020, 750, fill_color="lightblue")
+    load = create_rect(diagram_canvas, 65, 530, 70, 550, fill_color="gray")
+    press_trans3 = create_rect(diagram_canvas, 50, 530, 55, 550, fill_color="gray")
 
-    #labels
-    canvas.create_text(310, 770, text="ENGINE", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
-    canvas.create_text(700, 770, text="FILL STATION", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
-    canvas.create_text(1010, 770, text="FILL TANK", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
+    servo_middle = create_rect(diagram_canvas, 250, 500, 260, 520, fill_color="gray")
+    press_trans1 = create_rect(diagram_canvas, 260, 470, 270, 490, fill_color="gray")
+    fill_tank = create_rect(diagram_canvas, 500, 450, 520, 750, fill_color="lightblue")
+
+    # Labels on the rocket diagram
+    diagram_canvas.create_text(50, 325, text="TS1", anchor=tk.SW, font=('Arial', 8, 'bold'))
+    diagram_canvas.create_text(20, 75, text="TS3", anchor=tk.SW, font=('Arial', 8, 'bold'))
+    diagram_canvas.create_text(50, 600, text="TS4", anchor=tk.SW, font=('Arial', 8, 'bold'))
+    diagram_canvas.create_text(50, 700, text="TS5", anchor=tk.SW, font=('Arial', 8, 'bold'))
+
+    diagram_canvas.create_text(80, 75, text="PS2", anchor=tk.SW, font=('Arial', 8, 'bold'))
+    diagram_canvas.create_text(20, 525, text="PS3", anchor=tk.SW, font=('Arial', 8, 'bold'))
+    diagram_canvas.create_text(250, 450, text="PS1", anchor=tk.SW, font=('Arial', 8, 'bold'))
+
+    diagram_canvas.create_text(80, 525, text="LS1&2", anchor=tk.SW, font=('Arial', 8, 'bold'))
+
+    # Create servo sensors
+    servo2 = create_sensor_display(diagram_canvas, x=45, y=465, width=200, height=100, title="Servo2", graph_type="servo")
+    servo1 = create_sensor_display(diagram_canvas, x=250, y=525, width=200, height=100, title="Servo1", graph_type="servo")
+
+    # Labels
+    diagram_canvas.create_text(60, 770, text="ENGINE", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
+    diagram_canvas.create_text(260, 770, text="FILL STATION", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
+    diagram_canvas.create_text(510, 770, text="FILL TANK", anchor=tk.CENTER, font=('Arial', 12, 'bold'))
 
     # Show the Tkinter window
     root.mainloop()
-
-#temp        = *F     = 60 -50 < y < 80 +50
-#pressure    = psi    = 50 -50 < y < 150 +50
-#servo       = on/off = green/red
-#load sensor = lbs    = 0 - 50 < y 100 +50
-    
-# ON
-#  *
-    
-# OFF
-#  *
