@@ -217,15 +217,21 @@ if __name__ == "__main__":
     # Create load sensors
     load_sensor1 = create_sensor_display(graph_canvas, x=250, y=500, width=200, height=100, title="Load Sensor 1", graph_type="load_sensor", diagram=diagram_canvas, label=ls1_text)
     load_sensor2 = create_sensor_display(graph_canvas, x=250, y=650, width=200, height=100, title="Load Sensor 2", graph_type="load_sensor", diagram=diagram_canvas, label=ls2_text)
+    
     # Rocket bodies
-    upper = create_rect(diagram_canvas, 50, 100, 70, 450, fill_color="lightblue")
-    lower = create_rect(diagram_canvas, 30, 550, 90, 750, fill_color="lightblue")
+    upper = create_rect(diagram_canvas, 30, 100, 90, 450, fill_color="lightblue")
+    lower = create_rect(diagram_canvas, 30, 580, 90, 750, fill_color="lightblue")
     middle = create_rect(diagram_canvas, 100, 500, 500, 490, fill_color="gray")
 
-    load = create_rect(diagram_canvas, 65, 530, 70, 550, fill_color="gray")
-    press_trans3 = create_rect(diagram_canvas, 50, 530, 55, 550, fill_color="gray")
+    #temp sensor dots
+    temp_sensor1_indicator = diagram_canvas.create_oval(60, 300, 70, 310, outline='black', width=2, fill='black')
+    temp_sensor4_indicator = diagram_canvas.create_oval(60, 600, 70, 610, outline='black', width=2, fill='black')
+    temp_sensor5_indicator = diagram_canvas.create_oval(60, 700, 70, 710, outline='black', width=2, fill='black')
 
-    servo_middle = create_rect(diagram_canvas, 250, 500, 260, 520, fill_color="gray")
+    load = create_rect(diagram_canvas, 65, 530, 70, 550, fill_color="pink")
+    press_trans3 = create_rect(diagram_canvas, 50, 530, 55, 550, fill_color="gray")
+    ps2_rect = create_rect(diagram_canvas, 80, 80, 90, 100, fill_color='gray')
+
     press_trans1 = create_rect(diagram_canvas, 260, 470, 270, 490, fill_color="gray")
     fill_tank = create_rect(diagram_canvas, 480, 450, 540, 750, fill_color="lightblue")
 
@@ -235,7 +241,7 @@ if __name__ == "__main__":
 
     # Create servo sensors
     dservo2 = create_servo(diagram_canvas, x=50, y=480, diameter=100, title="Servo2", initial_state=True)
-    dservo1 = create_servo(diagram_canvas, x=240, y=550, diameter=100, title="Servo1", initial_state=True)
+    dservo1 = create_servo(diagram_canvas, x=200, y=440, diameter=100, title="Servo1", initial_state=True)
 
     # Start servo animation
     ani_servo1 = start_servo_animation(graph_canvas, *servo1)
